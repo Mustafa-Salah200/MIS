@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
 
 interface StudentProfile {
   firstName: string;
@@ -27,17 +26,8 @@ interface StudentProfile {
 }
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  
-  // Extract first and last name from full_name
-  const getFirstLastName = (fullName: string) => {
-    const names = fullName.trim().split(' ');
-    return {
-      firstName: names[0] || '',
-      lastName: names.slice(1).join(' ') || '',
-    };
-  };
 
   const { firstName, lastName } = user?.first_name && user?.last_name 
     ? { firstName: user.first_name, lastName: user.last_name }
@@ -92,7 +82,7 @@ export default function Profile() {
   };
 
   const handleSave = async () => {
-    if (!user?.email) {
+    if (!user) {
       toast({
         title: "Error",
         description: "User information not found.",
@@ -102,30 +92,29 @@ export default function Profile() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from("students")
-        .update({
-          first_name: editedProfile.firstName,
-          last_name: editedProfile.lastName,
-          phone: editedProfile.phone,
-          address: editedProfile.address,
-          birth_day: editedProfile.dateOfBirth,
-        })
-        .eq("email", user.email)
-        .select();
-
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
-      }
-
-      console.log("Update successful:", data);
+      updateUser({
+        name: `${editedProfile.firstName} ${editedProfile.lastName}`.trim() || user.name,
+        first_name: editedProfile.firstName,
+        last_name: editedProfile.lastName,
+        email: editedProfile.email,
+        phone: editedProfile.phone,
+        address: editedProfile.address,
+        birth_day: editedProfile.dateOfBirth,
+        studentId: editedProfile.studentId,
+        student_id: editedProfile.studentId,
+        roll_no: editedProfile.studentId,
+        enrollment: editedProfile.enrollmentDate,
+        program: editedProfile.program,
+        department: editedProfile.department,
+        year: editedProfile.currentYear,
+        type: editedProfile.status,
+      });
 
       setProfile(editedProfile);
       setIsEditing(false);
       toast({
         title: "Profile Updated",
-        description: "Your profile information has been saved successfully.",
+        description: "Your profile information has been saved to local storage.",
       });
     } catch (error: any) {
       console.error("Error updating profile:", error);

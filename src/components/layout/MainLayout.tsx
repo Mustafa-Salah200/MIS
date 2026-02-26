@@ -6,7 +6,7 @@ import TopBar from "./TopBar";
 import { cn } from "@/lib/utils";
 
 export default function MainLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // desktop collapse
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile drawer
 
@@ -33,6 +33,10 @@ export default function MainLayout() {
     window.addEventListener("resize", syncSidebarState);
     return () => window.removeEventListener("resize", syncSidebarState);
   }, []);
+
+  if (loading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
